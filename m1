@@ -1,0 +1,97 @@
+# Student Exam Reattempt Analysis
+# Minor 1 – Exploratory Data Analysis (EDA)
+# Difficulty: Medium
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -------------------------------
+# Step 1: Create Dummy Dataset
+# -------------------------------
+np.random.seed(42)
+
+students = np.arange(1, 31)  # 30 students
+
+data = {
+    "Student_ID": np.repeat(students, 2),
+    "Attempt_No": [1, 2] * 30,
+    "Marks": np.concatenate([
+        np.random.randint(30, 55, 30),   # First attempt marks
+        np.random.randint(40, 75, 30)    # Reattempt marks
+    ])
+}
+
+df = pd.DataFrame(data)
+
+print("\n--- Dataset Sample ---")
+print(df.head())
+
+# -------------------------------
+# Step 2: Descriptive Statistics
+# -------------------------------
+print("\n--- Descriptive Statistics (Attempt-wise) ---")
+attempt_stats = df.groupby("Attempt_No")["Marks"].describe()
+print(attempt_stats)
+
+# -------------------------------
+# Step 3: Pivot Table for Analysis
+# -------------------------------
+pivot_df = df.pivot(index="Student_ID", columns="Attempt_No", values="Marks")
+pivot_df.columns = ["First_Attempt", "Reattempt"]
+
+# Improvement calculation
+pivot_df["Improvement"] = pivot_df["Reattempt"] - pivot_df["First_Attempt"]
+
+print("\n--- Improvement Data Sample ---")
+print(pivot_df.head())
+
+# -------------------------------
+# Step 4: Improvement Statistics
+# -------------------------------
+print("\n--- Improvement Statistics ---")
+print(pivot_df["Improvement"].describe())
+
+# -------------------------------
+# Step 5: Line Plot (Improvement Trend)
+# -------------------------------
+plt.figure()
+for student in pivot_df.index[:10]:  # plot first 10 students
+    plt.plot(
+        [1, 2],
+        pivot_df.loc[student, ["First_Attempt", "Reattempt"]],
+        marker='o'
+    )
+
+plt.xlabel("Attempt Number")
+plt.ylabel("Marks")
+plt.title("Student Exam Reattempt Improvement Trend")
+plt.grid(True)
+plt.show()
+
+# -------------------------------
+# Step 6: Improvement Distribution
+# -------------------------------
+plt.figure()
+plt.hist(pivot_df["Improvement"], bins=10)
+plt.xlabel("Marks Improvement")
+plt.ylabel("Number of Students")
+plt.title("Distribution of Marks Improvement")
+plt.grid(True)
+plt.show()
+
+# -------------------------------
+# Step 7: Final Insights
+# -------------------------------
+improved = (pivot_df["Improvement"] > 0).sum()
+no_change = (pivot_df["Improvement"] == 0).sum()
+declined = (pivot_df["Improvement"] < 0).sum()
+
+print("\n--- Final Insights ---")
+print("Improved Students:", improved)
+print("No Change:", no_change)
+print("Declined Performance:", declined)
+
+print("\nConclusion:")
+print("Reattempt analysis shows that most students improve their performance,")
+print("supported by higher average marks and positive trends in line plots.")
